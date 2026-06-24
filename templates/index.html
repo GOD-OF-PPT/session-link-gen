@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Session 长链接生成器</title>
+<style>
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--muted:#8b949e;--accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d2991d}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.top{background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top h1{font-size:14px;color:#e6edf3;display:flex;align-items:center;gap:8px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0}
+.st{font-size:11px;color:var(--muted)}
+.main{max-width:900px;margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:6px}
+.sec-h{padding:10px 14px;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;border-bottom:1px solid var(--border)}
+.sec-h .ar{font-size:9px;transition:transform .15s}
+.sec-h.fold .ar{transform:rotate(-90deg)}
+.sec-h.fold{border-bottom-color:transparent}
+.sec-b{padding:12px 14px}
+.sec-h.fold + .sec-b{display:none}
+.badge{font-size:10px;padding:1px 7px;border-radius:10px;font-weight:500;margin-left:auto}
+.bg{background:#1f3a27;color:var(--green)}.bb{background:#0c2d6b;color:var(--accent)}.by{background:#3d2e00;color:var(--yellow)}.br{background:#3d1f1f;color:var(--red)}
+label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:500}
+input,select,textarea{width:100%;padding:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px;font-family:"Cascadia Code","Fira Code",Consolas,monospace;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+textarea{resize:vertical;min-height:50px;line-height:1.5}
+select{cursor:pointer}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.cols-1{grid-template-columns:1fr}
+.hr{border:0;border-top:1px solid var(--border);margin:10px 0}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary{background:#238636;color:#fff}.btn-primary:hover{background:#2ea043}
+.btn-primary:disabled{opacity:.5;pointer-events:none}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{border-color:var(--muted)}
+.btn-sm{padding:4px 9px;font-size:11px}
+.btn-lg{width:100%;justify-content:center;padding:12px;font-size:14px}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.res{display:none;margin-top:10px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:4px}
+.res.show{display:block}.res.ok{border-color:var(--green)}.res.err{border-color:var(--red)}
+.rlink{word-break:break-all;font-family:monospace;font-size:13px;line-height:1.6}
+.res.ok .rlink{color:var(--green)}.res.err .rlink{color:var(--red)}
+.rmeta{font-size:11px;color:var(--muted);margin-top:6px}
+.racts{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.elog{display:none;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;font-size:11px;max-height:260px;overflow:auto}
+.elog.show{display:block}
+.elog-title{color:var(--muted);font-weight:600;margin-bottom:6px}
+.elog-row{padding:6px 0;border-top:1px solid var(--border)}
+.elog-title + .elog-row{border-top:0}
+.elog-meta{color:var(--yellow);margin-bottom:3px}
+.elog-err{color:var(--red);font-family:"Cascadia Code","Fira Code",Consolas,monospace;white-space:pre-wrap;word-break:break-word;line-height:1.45}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:s .6s linear infinite;vertical-align:middle}
+@keyframes s{to{transform:rotate(360deg)}}
+.toast{position:fixed;top:12px;right:12px;z-index:100;padding:10px 16px;border-radius:4px;font-size:12px;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.4);animation:ti .3s;display:none}
+.toast.show{display:block}.toast.ok{background:#1f3a27;color:var(--green);border:1px solid var(--green)}.toast.err{background:#3d1f1f;color:var(--red);border:1px solid var(--red)}
+@keyframes ti{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.tmsg{font-size:11px;margin-top:4px;min-height:0}
+.tmsg .ok{color:var(--green)}.tmsg .err{color:var(--red)}.tmsg .wait{color:var(--yellow)}
+.ft{text-align:center;padding:14px;color:#484f58;font-size:10px}
+@media(max-width:640px){.main{padding:6px;gap:6px}.cols{grid-template-columns:1fr}.sec-b{padding:8px 10px}.top h1{font-size:13px}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1><span class="dot" id="hd"></span>Session 长链接生成器</h1>
+  <span class="st" id="ss">检测中...</span>
+</div>
+
+<div class="main">
+
+  <!-- === Session Input === -->
+  <div class="sec">
+    <div class="sec-h" onclick="tg(this)"><span class="ar">▼</span> 粘贴 Session JSON / Access Token</div>
+    <div class="sec-b">
+      <textarea id="si" rows="5" placeholder="粘贴 ChatGPT Session JSON 或 Access Token...&#10;支持: 完整JSON | 纯JWT | Bearer token"></textarea>
+      <div class="btn-row"><button class="btn btn-ghost btn-sm" onclick="G('si').value=''">清空</button></div>
+    </div>
+  </div>
+
+  <!-- === Payment Mode === -->
+  <div class="sec">
+    <div class="sec-h" onclick="tg(this)"><span class="ar">▼</span> 支付模式</div>
+    <div class="sec-b">
+      <div class="cols"><div>
+        <label>支付模式</label>
+        <select id="pm">
+          <optgroup label="无卡长链接"><option value="0">US/USD</option><option value="1">BR/BRL</option><option value="2">DE/EUR</option><option value="3">FR/EUR</option><option value="4">GB/GBP</option><option value="5">CA/CAD</option><option value="6">AU/AUD</option><option value="7">JP/JPY</option><option value="8">GoPay ID/IDR</option></optgroup>
+          <optgroup label="PayPal 长链接"><option value="9" selected>US/USD</option><option value="10">FR/EUR</option></optgroup>
+          <optgroup label="Apple Pay"><option value="11">US/USD</option><option value="12">JP/JPY</option></optgroup>
+        </select>
+      </div><div>
+        <label>重试次数</label>
+        <input id="rt" type="number" min="1" max="100" step="1" value="20">
+      </div></div>
+    </div>
+  </div>
+
+  <!-- === Proxy === -->
+  <div class="sec">
+    <div class="sec-h" onclick="tg(this)"><span class="ar">▼</span> 代理配置 <span class="badge bb" id="pb">直连</span></div>
+    <div class="sec-b">
+      <div>
+        <label>支付链接代理池 (每行一个, #注释)</label>
+        <textarea id="ppp" rows="3" oninput="ub()" placeholder="http://user:pass@pp1:8080&#10;http://user:pass@pp2:9090"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost btn-sm" onclick="sv()">💾 保存配置</button>
+        <button class="btn btn-ghost btn-sm" onclick="ld()">📂 加载配置</button>
+        <button class="btn btn-ghost btn-sm" onclick="cl()">🗑 清空配置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- === Generate === -->
+  <button class="btn btn-primary btn-lg" id="gb" onclick="go()">🚀 生成支付长链接</button>
+  <div class="elog" id="elog"></div>
+
+  <!-- === Result === -->
+  <div class="res" id="rc"><div id="rx"></div></div>
+</div>
+
+<div class="ft">Session Link Generator — :5000</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+var G=function(id){return document.getElementById(id)};
+
+// Panel toggle
+function tg(h){h.classList.toggle('fold');var a=h.querySelector('.ar');a.textContent=h.classList.contains('fold')?'▶':'▼'}
+
+// Toast notification
+var _tt;
+function toast(msg,type){clearTimeout(_tt);var t=G('toast');t.textContent=msg;t.className='toast show '+(type||'ok');_tt=setTimeout(function(){t.className='toast'},2000)}
+
+// Badge update
+function ub(){var ok=!!G('ppp').value.trim();var b=G('pb');b.textContent=ok?'已配置':'直连';b.className='badge '+(ok?'bg':'bb')}
+
+function retryCount(){
+  var n=parseInt(G('rt').value,10);
+  if(!Number.isFinite(n))n=20;
+  n=Math.max(1,Math.min(100,n));
+  G('rt').value=n;
+  return n;
+}
+
+// Payment modes
+var MODES=['无卡长链接 US/USD','无卡长链接 BR/BRL','无卡长链接 DE/EUR','无卡长链接 FR/EUR','无卡长链接 GB/GBP','无卡长链接 CA/CAD','无卡长链接 AU/AUD','无卡长链接 JP/JPY','GoPay 长链接 ID/IDR','PayPal 长链接 US/USD','PayPal 长链接 FR/EUR','Apple Pay 支付页 US/USD','Apple Pay 支付页 JP/JPY'];
+
+// Escaping
+function E(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function EA(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;')}
+
+var _attemptErrors=[];
+function renderAttemptLog(errors){
+  var box=G('elog');
+  errors=Array.isArray(errors)?errors:[];
+  if(!errors.length){box.className='elog';box.innerHTML='';return}
+  var html='<div class="elog-title">实时提取报错记录（'+errors.length+' 条）</div>';
+  for(var i=0;i<errors.length;i++){
+    var it=errors[i]||{};
+    var proxy=it.proxy_used?' | 代理: '+E(it.proxy_used):'';
+    html+='<div class="elog-row"><div class="elog-meta">第 '+E(it.attempt||i+1)+' 次'+proxy+'</div><div class="elog-err">'+E(it.error||'未知错误')+'</div></div>';
+  }
+  box.innerHTML=html;
+  box.className='elog show';
+  box.scrollTop=box.scrollHeight;
+}
+function resetAttemptLog(){_attemptErrors=[];renderAttemptLog(_attemptErrors)}
+function addAttemptLog(item){_attemptErrors.push(item||{});renderAttemptLog(_attemptErrors)}
+async function streamApi(url,body,onEvent){
+  var r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+  if(!r.ok){
+    var err;
+    try{err=await r.json()}catch(_e){err={error:'HTTP '+r.status}}
+    throw new Error(err.error||('HTTP '+r.status));
+  }
+  var finalEvent=null;
+  function handleLine(line){
+    line=line.trim();
+    if(!line)return;
+    var ev=JSON.parse(line);
+    onEvent(ev);
+    if(ev.type==='success'||ev.type==='error')finalEvent=ev;
+  }
+  if(!r.body||!window.TextDecoder){
+    var text=await r.text();
+    text.split('\n').forEach(handleLine);
+    return finalEvent;
+  }
+  var reader=r.body.getReader(),decoder=new TextDecoder(),buf='';
+  while(true){
+    var part=await reader.read();
+    if(part.done)break;
+    buf+=decoder.decode(part.value,{stream:true});
+    var lines=buf.split('\n');
+    buf=lines.pop();
+    lines.forEach(handleLine);
+  }
+  buf+=decoder.decode();
+  handleLine(buf);
+  return finalEvent;
+}
+
+// ====== localStorage ======
+function sv(){
+  var c={ppp:G('ppp').value,pm:G('pm').value,rt:retryCount()};
+  localStorage.setItem('sg_cfg',JSON.stringify(c));
+  ub();toast('配置已保存 ✅');
+}
+function ld(){
+  try{
+    var c=JSON.parse(localStorage.getItem('sg_cfg')||'{}');
+    if(c.ppp!==undefined)G('ppp').value=c.ppp;
+    if(c.pm!==undefined)G('pm').value=c.pm;
+    if(c.rt!==undefined)G('rt').value=c.rt;
+    retryCount();
+    ub();toast('配置已加载 ✅');
+  }catch(e){toast('加载失败: '+e,'err')}
+}
+function cl(){G('ppp').value='';G('rt').value=20;localStorage.removeItem('sg_cfg');ub();toast('配置已清空 🗑')}
+
+// ====== Health ======
+async function hc(){
+  try{var r=await fetch('/api/health');var d=await r.json();
+  if(d.ok){G('hd').style.background='var(--green)';G('ss').innerHTML='<span style="color:var(--green)">● 正常</span>'}
+  else{G('hd').style.background='var(--yellow)';G('ss').innerHTML='<span style="color:var(--yellow)">● 异常</span>'}
+  }catch(e){G('hd').style.background='var(--red)';G('ss').innerHTML='<span style="color:var(--red)">● 断开</span>'}
+}
+
+// ====== Generate ======
+async function api(url,body){var hd={'Content-Type':'application/json'};return fetch(url,{method:'POST',headers:hd,body:JSON.stringify(body||{})});}
+async function go(){
+  var s=G('si').value.trim(),btn=G('gb'),rc=G('rc'),rx=G('rx');
+  resetAttemptLog();
+  if(!s){toast('请先粘贴 Session JSON','err');rc.className='res show err';rx.innerHTML='<span style="color:var(--red)">请先粘贴 Session JSON 或 Access Token</span>';return}
+  var rt=retryCount();
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span> 调用 OpenAI / Stripe 中，最多重试 '+rt+' 次...';
+  rc.className='res show';rx.innerHTML='<div style="color:var(--muted)"><span class="spin"></span> 请求中，请稍候，最多重试 '+rt+' 次...</div>';
+  var attemptsUsed=0,d=null,lastErr='';
+  while(attemptsUsed<rt&&!d){
+    var requestBase=attemptsUsed,seenInRequest=0;
+    var body={session_json:s,payment_mode:MODES[parseInt(G('pm').value)],payment_proxy_pool:G('ppp').value.trim(),retry_count:rt-attemptsUsed};
+    try{
+      d=await streamApi('/api/paste-session-stream',body,function(ev){
+        if(ev.type==='attempt_error'){
+          var localAttempt=ev.attempts||ev.attempt||1;
+          seenInRequest=Math.max(seenInRequest,localAttempt);
+          var globalAttempt=requestBase+localAttempt;
+          addAttemptLog(Object.assign({},ev,{attempt:globalAttempt,attempts:globalAttempt,retry_count:rt}));
+          rx.innerHTML='<div style="color:var(--muted)"><span class="spin"></span> 已失败 '+E(globalAttempt)+'/'+E(rt)+' 次，继续重试...</div>';
+        }else if(ev.type==='success'||ev.type==='error'){
+          ev.attempts=requestBase+(ev.attempts||seenInRequest||0);
+          ev.retry_count=rt;
+          renderAttemptLog(_attemptErrors);
+        }
+      });
+      if(!d)throw new Error('流式响应为空');
+      d.attempts=requestBase+(d.attempts||seenInRequest||0);
+      d.retry_count=rt;
+    }catch(e){
+      var failedAttempt=Math.min(rt,requestBase+Math.max(seenInRequest+1,1));
+      attemptsUsed=failedAttempt;
+      lastErr=e.message||String(e);
+      addAttemptLog({attempt:failedAttempt,attempts:failedAttempt,retry_count:rt,error:'请求失败: '+lastErr});
+      if(attemptsUsed<rt){
+        rx.innerHTML='<div style="color:var(--muted)"><span class="spin"></span> 连接失败 '+E(attemptsUsed)+'/'+E(rt)+' 次，继续重新请求...</div>';
+        continue;
+      }
+      d={ok:false,error:'请求失败: '+lastErr,attempts:attemptsUsed,retry_count:rt};
+    }
+  }
+  if(d&&d.ok){
+    rc.className='res show ok';
+    var pi=d.proxy_used&&d.proxy_used!=='直连'?' | 代理: <code>'+E(d.proxy_used)+'</code>':'';
+    var ai=d.attempts?' | 尝试: '+E(d.attempts)+'/'+E(d.retry_count||d.attempts):'';
+    rx.innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:4px">支付长链接</div><div class="rlink">'+E(d.long_url)+'</div><div class="rmeta">模式: '+E(d.payment_mode)+pi+ai+'</div><div class="racts"><button class="btn btn-ghost btn-sm" onclick="cpy(\''+EA(d.long_url)+'\')">📋 复制链接</button><button class="btn btn-ghost btn-sm" onclick="window.open(\''+EA(d.long_url)+'\',\'_blank\')">🌐 打开</button>'+(d.access_token?'<button class="btn btn-ghost btn-sm" onclick="cpy(\''+EA(d.access_token)+'\')">🔑 复制 Token</button>':'')+'</div>';
+    toast('长链接生成成功 ✅','ok');
+  }else{
+    rc.className='res show err';
+    var at=d&&d.attempts?'（已尝试 '+E(d.attempts)+' 次）':'';
+    rx.innerHTML='<span style="color:var(--red)">❌ '+E((d&&d.error)||'生成失败')+at+'</span>';
+    toast('生成失败','err');
+  }
+  btn.disabled=false;btn.innerHTML='🚀 生成支付长链接';
+}
+
+function cpy(t){navigator.clipboard.writeText(t).then(function(){toast('已复制到剪贴板 📋','ok')}).catch(function(){prompt('复制:',t)})}
+
+// Init
+hc();setInterval(hc,20000);ld();
+</script>
+</body>
+</html>
+

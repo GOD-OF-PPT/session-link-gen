@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.py[cod]
+
+*.log
+server.err.log
+server.out.log
+flask.stderr.log
+flask.stdout.log
+
+proxies.txt
+.env
+.env.*
