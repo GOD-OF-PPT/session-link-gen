@@ -87,8 +87,8 @@ select{cursor:pointer}
         <label>支付模式</label>
         <select id="pm">
           <optgroup label="无卡长链接"><option value="0">US/USD</option><option value="1">BR/BRL</option><option value="2">DE/EUR</option><option value="3">FR/EUR</option><option value="4">GB/GBP</option><option value="5">CA/CAD</option><option value="6">AU/AUD</option><option value="7">JP/JPY</option><option value="8">GoPay ID/IDR</option></optgroup>
-          <optgroup label="PayPal 长链接"><option value="9" selected>US/USD</option><option value="10">FR/EUR</option></optgroup>
-          <optgroup label="Apple Pay"><option value="11">US/USD</option><option value="12">JP/JPY</option></optgroup>
+          <optgroup label="PayPal 长链接"><option value="9" selected>US/USD</option><option value="10">FR/EUR</option><option value="11">JP/JPY</option></optgroup>
+          <optgroup label="Apple Pay"><option value="12">US/USD</option><option value="13">JP/JPY</option></optgroup>
         </select>
       </div><div>
         <label>重试次数</label>
@@ -148,7 +148,7 @@ function retryCount(){
 }
 
 // Payment modes
-var MODES=['无卡长链接 US/USD','无卡长链接 BR/BRL','无卡长链接 DE/EUR','无卡长链接 FR/EUR','无卡长链接 GB/GBP','无卡长链接 CA/CAD','无卡长链接 AU/AUD','无卡长链接 JP/JPY','GoPay 长链接 ID/IDR','PayPal 长链接 US/USD','PayPal 长链接 FR/EUR','Apple Pay 支付页 US/USD','Apple Pay 支付页 JP/JPY'];
+var MODES=['无卡长链接 US/USD','无卡长链接 BR/BRL','无卡长链接 DE/EUR','无卡长链接 FR/EUR','无卡长链接 GB/GBP','无卡长链接 CA/CAD','无卡长链接 AU/AUD','无卡长链接 JP/JPY','GoPay 长链接 ID/IDR','PayPal 长链接 US/USD','PayPal 长链接 FR/EUR','PayPal 长链接 JP/JPY','Apple Pay 支付页 US/USD','Apple Pay 支付页 JP/JPY'];
 
 // Escaping
 function E(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
@@ -295,4 +295,3 @@ hc();setInterval(hc,20000);ld();
 </script>
 </body>
 </html>
-

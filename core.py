@@ -71,6 +71,7 @@ PAYMENT_MODES = {
     "GoPay 长链接 ID/IDR":     {"country": "ID", "currency": "IDR"},
     "PayPal 长链接 US/USD":    {"country": "US", "currency": "USD"},
     "PayPal 长链接 FR/EUR":    {"country": "FR", "currency": "EUR"},
+    "PayPal 长链接 JP/JPY":    {"country": "JP", "currency": "JPY"},
     "Apple Pay 支付页 US/USD": {"country": "US", "currency": "USD", "apple_pay_hosted": True},
     "Apple Pay 支付页 JP/JPY": {"country": "JP", "currency": "JPY", "apple_pay_hosted": True},
 }
@@ -1222,7 +1223,8 @@ def generate_opll_paypal_long_link(access_token: str, country: str, currency: st
                                     proxy_url: str = "") -> dict:
     """
     Generate a PayPal BA approve long link from a ChatGPT access token.
-    This is used for modes like "PayPal 长链接 US/USD" and "PayPal 长链接 FR/EUR".
+    This is used for modes like "PayPal 长链接 US/USD", "PayPal 长链接 FR/EUR",
+    and "PayPal 长链接 JP/JPY".
     """
     failures: list[str] = []
     requested_country = normalize_opll_country(country)
@@ -1327,6 +1329,7 @@ def generate_payment_link(access_token: str, mode: str = "无卡长链接 US/USD
               - "GoPay 长链接 ID/IDR"
               - "PayPal 长链接 US/USD" (PayPal BA approve URL)
               - "PayPal 长链接 FR/EUR"
+              - "PayPal 长链接 JP/JPY"
               - "Apple Pay 支付页 US/USD"
               - "Apple Pay 支付页 JP/JPY"
         proxy_url: Optional HTTP proxy URL, e.g. "http://127.0.0.1:7890".

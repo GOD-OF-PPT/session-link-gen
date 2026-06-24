@@ -122,6 +122,7 @@ curl http://127.0.0.1:5000/api/payment-modes
 | GoPay 长链接 ID/IDR | hosted | ID | IDR |
 | **PayPal 长链接 US/USD** | paypal | US | USD |
 | **PayPal 长链接 FR/EUR** | paypal | FR | EUR |
+| **PayPal 长链接 JP/JPY** | paypal | JP | JPY |
 | Apple Pay 支付页 US/USD | hosted | US | USD |
 | Apple Pay 支付页 JP/JPY | hosted | JP | JPY |
 
